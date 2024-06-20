@@ -54,7 +54,7 @@
       }
     ]
   },
-  "description": "Complete Dashboard for PaloAlto Firewalls. ",
+  "description": "Dashboard for PaloAlto Firewalls. ",
   "editable": true,
   "gnetId": 11321,
   "graphTooltip": 0,
