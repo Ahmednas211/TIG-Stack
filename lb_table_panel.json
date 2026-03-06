@@ -1,0 +1,388 @@
+{
+  "_instructions": {
+    "step1": "UPDATE the $ResourceGroup variable: add 'multi: true' and 'includeAll: true' (see updated_variables section)",
+    "step2": "UPDATE the $ResourceName variable: add 'multi: true' and 'includeAll: true' (see updated_variables section)",
+    "step3": "APPEND the two objects in 'panels_to_add' into the 'panels' array of your existing dashboard JSON",
+    "step4": "Replace the subscription ID '7852edc2-4695-44f2-812f-a927308fbfa0' with your actual subscription ID if different",
+    "note_on_location": "Location comes from Resource Graph (query A). Metrics come from queries B-E. A join-by-name transform merges them into one table row per LB.",
+    "note_on_transforms": "If series names from Azure Monitor look different in your environment, adjust the 'renameByRegex' pattern in the transformations array."
+  },
+
+  "updated_variables": {
+    "_note": "Replace the existing ResourceGroup and ResourceName entries in your 'templating.list' array with these",
+
+    "ResourceGroup": {
+      "current": {},
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "$Subscriptions"
+      },
+      "definition": "",
+      "includeAll": true,
+      "multi": true,
+      "allValue": ".*",
+      "label": "Resource Group",
+      "name": "ResourceGroup",
+      "options": [],
+      "query": {
+        "grafanaTemplateVariableFn": {
+          "kind": "ResourceGroupsQuery",
+          "rawQuery": "ResourceGroups()",
+          "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+        },
+        "queryType": "Azure Resource Groups",
+        "refId": "A",
+        "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+      },
+      "refresh": 1,
+      "regex": "/^(hub-.*|pcp-.*|stargate-.*)$/",
+      "type": "query"
+    },
+
+    "ResourceName": {
+      "current": {},
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${Subscriptions}"
+      },
+      "definition": "",
+      "includeAll": true,
+      "multi": true,
+      "label": "ResourceName",
+      "name": "ResourceName",
+      "options": [],
+      "query": {
+        "grafanaTemplateVariableFn": {
+          "kind": "ResourceNamesQuery",
+          "metricNamespace": "microsoft.network/loadbalancers",
+          "rawQuery": "ResourceNames($ResourceGroup,microsoft.network/loadbalancers)",
+          "resourceGroup": "$ResourceGroup",
+          "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+        },
+        "namespace": "microsoft.network/loadbalancers",
+        "queryType": "Azure Resource Names",
+        "refId": "A",
+        "resourceGroup": "$ResourceGroup",
+        "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+      },
+      "refresh": 2,
+      "regex": "",
+      "type": "query"
+    }
+  },
+
+  "panels_to_add": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 },
+      "id": 70,
+      "panels": [],
+      "title": "Load Balancer Overview Table",
+      "type": "row"
+    },
+    {
+      "id": 71,
+      "type": "table",
+      "title": "Load Balancer Overview — All Resources",
+      "description": "Multi-LB table: Resource Name, Resource Group, Location, Data Path Availability, Health Probe Status, SNAT Connection Count, SYN Count",
+      "pluginVersion": "12.1.1",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${Subscriptions}"
+      },
+      "gridPos": { "h": 18, "w": 24, "x": 0, "y": 14 },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [{ "displayName": "Name", "desc": false }],
+        "footer": {
+          "show": false,
+          "reducer": ["sum"],
+          "countRows": false,
+          "fields": ""
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "cellOptions": { "type": "auto" },
+            "filterable": true,
+            "inspect": false,
+            "minWidth": 120
+          },
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "name" },
+            "properties": [
+              { "id": "displayName", "value": "Name" },
+              { "id": "custom.width", "value": 220 },
+              { "id": "links", "value": [] }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "resourceGroup" },
+            "properties": [
+              { "id": "displayName", "value": "Resource Group" },
+              { "id": "custom.width", "value": 180 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "location" },
+            "properties": [
+              { "id": "displayName", "value": "Location" },
+              { "id": "custom.width", "value": 130 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Data Path Availability" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "decimals", "value": 1 },
+              { "id": "custom.width", "value": 180 },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background", "mode": "gradient" }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "red", "value": null },
+                    { "color": "yellow", "value": 80 },
+                    { "color": "green", "value": 95 }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Health Probe Status" },
+            "properties": [
+              { "id": "unit", "value": "percent" },
+              { "id": "decimals", "value": 1 },
+              { "id": "custom.width", "value": 180 },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background", "mode": "gradient" }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "red", "value": null },
+                    { "color": "yellow", "value": 80 },
+                    { "color": "green", "value": 95 }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "SNAT Connection Count" },
+            "properties": [
+              { "id": "unit", "value": "short" },
+              { "id": "decimals", "value": 0 },
+              { "id": "custom.width", "value": 180 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "SYN Count" },
+            "properties": [
+              { "id": "unit", "value": "short" },
+              { "id": "decimals", "value": 0 },
+              { "id": "custom.width", "value": 120 }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "_comment": "Query A: Resource Graph — provides Name, Resource Group, Location for all LBs in selected resource groups",
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${Subscriptions}"
+          },
+          "queryType": "Azure Resource Graph",
+          "azureResourceGraph": {
+            "query": "resources | where type =~ 'microsoft.network/loadbalancers' | where resourceGroup matches regex '(?i)(hub-|pcp-|stargate-)' | project name, resourceGroup, location | order by name asc",
+            "resultFormat": "table"
+          },
+          "subscriptions": ["7852edc2-4695-44f2-812f-a927308fbfa0"]
+        },
+        {
+          "_comment": "Query B: Data Path Availability (VipAvailability) — multi-value $ResourceName generates one series per LB",
+          "refId": "B",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${Subscriptions}"
+          },
+          "queryType": "Azure Monitor",
+          "hide": false,
+          "azureMonitor": {
+            "aggregation": "Average",
+            "allowedTimeGrainsMs": [60000, 300000, 900000, 1800000, 3600000, 21600000, 43200000, 86400000],
+            "dimensionFilters": [],
+            "metricName": "VipAvailability",
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resources": [
+              {
+                "resourceGroup": "$ResourceGroup",
+                "resourceName": "$ResourceName"
+              }
+            ],
+            "timeGrain": "auto"
+          }
+        },
+        {
+          "_comment": "Query C: Health Probe Status (DipAvailability)",
+          "refId": "C",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${Subscriptions}"
+          },
+          "queryType": "Azure Monitor",
+          "hide": false,
+          "azureMonitor": {
+            "aggregation": "Average",
+            "allowedTimeGrainsMs": [60000, 300000, 900000, 1800000, 3600000, 21600000, 43200000, 86400000],
+            "dimensionFilters": [],
+            "metricName": "DipAvailability",
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resources": [
+              {
+                "resourceGroup": "$ResourceGroup",
+                "resourceName": "$ResourceName"
+              }
+            ],
+            "timeGrain": "auto"
+          }
+        },
+        {
+          "_comment": "Query D: SNAT Connection Count",
+          "refId": "D",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${Subscriptions}"
+          },
+          "queryType": "Azure Monitor",
+          "hide": false,
+          "azureMonitor": {
+            "aggregation": "Total",
+            "allowedTimeGrainsMs": [60000, 300000, 900000, 1800000, 3600000, 21600000, 43200000, 86400000],
+            "dimensionFilters": [],
+            "metricName": "SnatConnectionCount",
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resources": [
+              {
+                "resourceGroup": "$ResourceGroup",
+                "resourceName": "$ResourceName"
+              }
+            ],
+            "timeGrain": "auto"
+          }
+        },
+        {
+          "_comment": "Query E: SYN Count",
+          "refId": "E",
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${Subscriptions}"
+          },
+          "queryType": "Azure Monitor",
+          "hide": false,
+          "azureMonitor": {
+            "aggregation": "Total",
+            "allowedTimeGrainsMs": [60000, 300000, 900000, 1800000, 3600000, 21600000, 43200000, 86400000],
+            "dimensionFilters": [],
+            "metricName": "SYNCount",
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resources": [
+              {
+                "resourceGroup": "$ResourceGroup",
+                "resourceName": "$ResourceName"
+              }
+            ],
+            "timeGrain": "auto"
+          }
+        }
+      ],
+      "transformations": [
+        {
+          "_comment": "Step 1 — Reduce all time-series queries (B/C/D/E) to a single last value per series. Query A (Resource Graph) is already a table, it passes through untouched.",
+          "id": "reduce",
+          "options": {
+            "reducers": ["last"],
+            "includeTimeField": false,
+            "mode": "seriesToRows"
+          }
+        },
+        {
+          "_comment": "Step 2 — Azure Monitor series names look like 'lb-trust-prod VipAvailability' or 'microsoft.network/loadbalancers/lb-trust-prod'. Extract just the LB name from the Field column so we can join with Resource Graph output. ADJUST the regex if your series names differ — check by temporarily removing downstream transforms.",
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^(?:microsoft\\.network/loadbalancers/)?([^/ ]+)(?:\\s+.*)?$",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "_comment": "Step 3 — Pivot the reduced rows so each LB becomes ONE row with columns: Field (LB name), Last B (VipAvailability), Last C (DipAvailability), Last D (SnatConnectionCount), Last E (SYNCount). This uses the 'partitionByValues' approach via groupToSubFrames then merge.",
+          "id": "groupToSubFrames",
+          "options": {
+            "fields": ["Field"]
+          }
+        },
+        {
+          "_comment": "Step 4 — Merge all sub-frames and the Resource Graph table into a single flat table",
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "_comment": "Step 5 — Join the Resource Graph resource list (columns: name, resourceGroup, location) with the metrics rows on the resource name field. This adds Location and Resource Group to each metric row.",
+          "id": "joinByField",
+          "options": {
+            "byField": "name",
+            "mode": "outer"
+          }
+        },
+        {
+          "_comment": "Step 6 — Rename metric value columns to human-readable names and hide unwanted fields",
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "subscriptionId": true
+            },
+            "renameByName": {
+              "name": "Name",
+              "resourceGroup": "Resource Group",
+              "location": "Location",
+              "Last 1": "Data Path Availability",
+              "Last 2": "Health Probe Status",
+              "Last 3": "SNAT Connection Count",
+              "Last 4": "SYN Count"
+            },
+            "indexByName": {
+              "name": 0,
+              "resourceGroup": 1,
+              "location": 2,
+              "Last 1": 3,
+              "Last 2": 4,
+              "Last 3": 5,
+              "Last 4": 6
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
