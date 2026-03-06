@@ -1,0 +1,148 @@
+{
+  "id": 52,
+  "type": "table",
+  "title": "New panel",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "h": 8,
+    "w": 12
+  },
+  "fieldConfig": {
+    "defaults": {
+      "custom": {
+        "align": "auto",
+        "cellOptions": {
+          "type": "auto"
+        },
+        "inspect": false
+      },
+      "mappings": [],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "value": null,
+            "color": "green"
+          },
+          {
+            "value": 80,
+            "color": "red"
+          }
+        ]
+      },
+      "color": {
+        "mode": "thresholds"
+      }
+    },
+    "overrides": []
+  },
+  "pluginVersion": "12.1.1",
+  "targets": [
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${Subscriptions}"
+      },
+      "refId": "A",
+      "queryType": "Azure Resource Graph",
+      "azureMonitor": {
+        "timeGrain": "auto",
+        "allowedTimeGrainsMs": []
+      },
+      "subscriptions": [
+        "7852edc2-4695-44f2-812f-a927308fbfa0"
+      ],
+      "azureResourceGraph": {
+        "query": "resources\r\n| where type =~ 'microsoft.network/loadbalancers'\r\n| where resourceGroup matches regex '(?i)(hub-|pcp-|stargate-)'\r\n| project name, resourceGroup, location\r\n| order by name asc"
+      }
+    },
+    {
+      "datasource": {
+        "uid": "${Subscriptions}",
+        "type": "grafana-azure-monitor-datasource"
+      },
+      "refId": "B",
+      "hide": false,
+      "queryType": "Azure Monitor",
+      "azureMonitor": {
+        "aggregation": "Average",
+        "timeGrain": "auto",
+        "allowedTimeGrainsMs": [
+          60000,
+          300000,
+          900000,
+          1800000,
+          3600000,
+          21600000,
+          43200000,
+          86400000
+        ],
+        "metricNamespace": "microsoft.network/loadbalancers",
+        "resources": [
+          {
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resourceGroup": "$ResourceGroup",
+            "resourceName": "$ResourceName",
+            "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+          }
+        ],
+        "metricName": "VipAvailability",
+        "dimensionFilters": []
+      },
+      "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+    },
+    {
+      "datasource": {
+        "uid": "${Subscriptions}",
+        "type": "grafana-azure-monitor-datasource"
+      },
+      "refId": "D",
+      "hide": false,
+      "queryType": "Azure Monitor",
+      "azureMonitor": {
+        "aggregation": "Average",
+        "timeGrain": "auto",
+        "allowedTimeGrainsMs": [
+          60000,
+          300000,
+          900000,
+          1800000,
+          3600000,
+          21600000,
+          43200000,
+          86400000
+        ],
+        "metricNamespace": "microsoft.network/loadbalancers",
+        "resources": [
+          {
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resourceGroup": "$ResourceGroup",
+            "resourceName": "$ResourceName",
+            "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+          }
+        ],
+        "metricName": "DipAvailability",
+        "dimensionFilters": []
+      },
+      "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+    }
+  ],
+  "datasource": {
+    "uid": "${Subscriptions}",
+    "type": "grafana-azure-monitor-datasource"
+  },
+  "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+      "show": false,
+      "reducer": [
+        "sum"
+      ],
+      "countRows": false,
+      "fields": ""
+    },
+    "frameIndex": 2
+  }
+}
