@@ -1,0 +1,274 @@
+{
+  "id": 52,
+  "type": "table",
+  "title": "Load Balancer Overview",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "h": 20,
+    "w": 24
+  },
+  "datasource": {
+    "uid": "${Subscriptions}",
+    "type": "grafana-azure-monitor-datasource"
+  },
+  "pluginVersion": "12.1.1",
+  "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+      "show": false,
+      "reducer": ["sum"],
+      "countRows": false,
+      "fields": ""
+    }
+  },
+  "fieldConfig": {
+    "defaults": {
+      "custom": {
+        "align": "left",
+        "cellOptions": { "type": "auto" },
+        "inspect": false,
+        "filterable": true
+      },
+      "mappings": [],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          { "value": null, "color": "green" },
+          { "value": 80,   "color": "red" }
+        ]
+      },
+      "color": { "mode": "thresholds" }
+    },
+    "overrides": [
+      {
+        "matcher": { "id": "byName", "options": "name" },
+        "properties": [
+          { "id": "displayName", "value": "Name" },
+          { "id": "custom.width", "value": 250 }
+        ]
+      },
+      {
+        "matcher": { "id": "byName", "options": "resourceGroup" },
+        "properties": [
+          { "id": "displayName", "value": "Resource Group" },
+          { "id": "custom.width", "value": 200 }
+        ]
+      },
+      {
+        "matcher": { "id": "byName", "options": "location" },
+        "properties": [
+          { "id": "displayName", "value": "Location" },
+          { "id": "custom.width", "value": 140 }
+        ]
+      },
+      {
+        "matcher": { "id": "byName", "options": "VipAvailability" },
+        "properties": [
+          { "id": "displayName", "value": "Data Path Availability" },
+          { "id": "unit", "value": "percent" },
+          { "id": "decimals", "value": 1 },
+          { "id": "custom.width", "value": 190 },
+          { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } },
+          {
+            "id": "thresholds",
+            "value": {
+              "mode": "absolute",
+              "steps": [
+                { "value": null, "color": "red" },
+                { "value": 80,   "color": "yellow" },
+                { "value": 95,   "color": "green" }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "matcher": { "id": "byName", "options": "DipAvailability" },
+        "properties": [
+          { "id": "displayName", "value": "Health Probe Status" },
+          { "id": "unit", "value": "percent" },
+          { "id": "decimals", "value": 1 },
+          { "id": "custom.width", "value": 190 },
+          { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } },
+          {
+            "id": "thresholds",
+            "value": {
+              "mode": "absolute",
+              "steps": [
+                { "value": null, "color": "red" },
+                { "value": 80,   "color": "yellow" },
+                { "value": 95,   "color": "green" }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "matcher": { "id": "byName", "options": "SnatConnectionCount" },
+        "properties": [
+          { "id": "displayName", "value": "SNAT Connection Count" },
+          { "id": "unit", "value": "short" },
+          { "id": "decimals", "value": 0 },
+          { "id": "custom.width", "value": 190 }
+        ]
+      },
+      {
+        "matcher": { "id": "byName", "options": "SYNCount" },
+        "properties": [
+          { "id": "displayName", "value": "SYN Count" },
+          { "id": "unit", "value": "short" },
+          { "id": "decimals", "value": 0 },
+          { "id": "custom.width", "value": 130 }
+        ]
+      }
+    ]
+  },
+  "targets": [
+    {
+      "refId": "A",
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${Subscriptions}"
+      },
+      "queryType": "Azure Resource Graph",
+      "azureMonitor": {
+        "timeGrain": "auto",
+        "allowedTimeGrainsMs": []
+      },
+      "subscriptions": ["7852edc2-4695-44f2-812f-a927308fbfa0"],
+      "azureResourceGraph": {
+        "query": "resources\n| where type =~ 'microsoft.network/loadbalancers'\n| where resourceGroup matches regex '(?i)(hub-|pcp-|stargate-)'\n| project name, resourceGroup, location\n| order by name asc",
+        "resultFormat": "table"
+      }
+    },
+    {
+      "refId": "B",
+      "hide": false,
+      "datasource": {
+        "uid": "${Subscriptions}",
+        "type": "grafana-azure-monitor-datasource"
+      },
+      "queryType": "Azure Monitor",
+      "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0",
+      "azureMonitor": {
+        "aggregation": "Average",
+        "timeGrain": "auto",
+        "allowedTimeGrainsMs": [60000,300000,900000,1800000,3600000,21600000,43200000,86400000],
+        "metricNamespace": "microsoft.network/loadbalancers",
+        "metricName": "VipAvailability",
+        "dimensionFilters": [],
+        "resources": [
+          {
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resourceGroup": "$ResourceGroup",
+            "resourceName": "$ResourceName",
+            "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+          }
+        ]
+      }
+    },
+    {
+      "refId": "C",
+      "hide": false,
+      "datasource": {
+        "uid": "${Subscriptions}",
+        "type": "grafana-azure-monitor-datasource"
+      },
+      "queryType": "Azure Monitor",
+      "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0",
+      "azureMonitor": {
+        "aggregation": "Average",
+        "timeGrain": "auto",
+        "allowedTimeGrainsMs": [60000,300000,900000,1800000,3600000,21600000,43200000,86400000],
+        "metricNamespace": "microsoft.network/loadbalancers",
+        "metricName": "DipAvailability",
+        "dimensionFilters": [],
+        "resources": [
+          {
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resourceGroup": "$ResourceGroup",
+            "resourceName": "$ResourceName",
+            "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+          }
+        ]
+      }
+    },
+    {
+      "refId": "D",
+      "hide": false,
+      "datasource": {
+        "uid": "${Subscriptions}",
+        "type": "grafana-azure-monitor-datasource"
+      },
+      "queryType": "Azure Monitor",
+      "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0",
+      "azureMonitor": {
+        "aggregation": "Total",
+        "timeGrain": "auto",
+        "allowedTimeGrainsMs": [60000,300000,900000,1800000,3600000,21600000,43200000,86400000],
+        "metricNamespace": "microsoft.network/loadbalancers",
+        "metricName": "SnatConnectionCount",
+        "dimensionFilters": [],
+        "resources": [
+          {
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resourceGroup": "$ResourceGroup",
+            "resourceName": "$ResourceName",
+            "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+          }
+        ]
+      }
+    },
+    {
+      "refId": "E",
+      "hide": false,
+      "datasource": {
+        "uid": "${Subscriptions}",
+        "type": "grafana-azure-monitor-datasource"
+      },
+      "queryType": "Azure Monitor",
+      "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0",
+      "azureMonitor": {
+        "aggregation": "Total",
+        "timeGrain": "auto",
+        "allowedTimeGrainsMs": [60000,300000,900000,1800000,3600000,21600000,43200000,86400000],
+        "metricNamespace": "microsoft.network/loadbalancers",
+        "metricName": "SYNCount",
+        "dimensionFilters": [],
+        "resources": [
+          {
+            "metricNamespace": "microsoft.network/loadbalancers",
+            "resourceGroup": "$ResourceGroup",
+            "resourceName": "$ResourceName",
+            "subscription": "7852edc2-4695-44f2-812f-a927308fbfa0"
+          }
+        ]
+      }
+    }
+  ],
+  "transformations": [
+    {
+      "id": "reduce",
+      "options": {
+        "reducers": ["last"],
+        "includeTimeField": false,
+        "mode": "seriesToRows"
+      }
+    },
+    {
+      "id": "merge",
+      "options": {}
+    },
+    {
+      "id": "organize",
+      "options": {
+        "excludeByName": {
+          "Time": true
+        },
+        "renameByName": {}
+      }
+    }
+  ]
+}
